@@ -13,6 +13,7 @@ import com.inv.invitation.model.InviteeType;
 import com.inv.invitation.model.User;
 import com.inv.invitation.service.InviteeService;
 import com.inv.invitation.service.InviteeTypeService;
+import com.inv.invitation.service.PublicInvitationDetailService;
 import com.inv.invitation.service.InvitationService;
 import com.inv.invitation.service.UserService;
 
@@ -25,12 +26,14 @@ public class InviteeController {
     private final InvitationService invitationService;
     private final InviteeTypeService inviteeTypeService;
     private final UserService userService;
+    private final PublicInvitationDetailService publicInvitationDetailService;
 
-    public InviteeController(InviteeService inviteeService, InvitationService invitationService, InviteeTypeService inviteeTypeService, UserService userService) {
+    public InviteeController(InviteeService inviteeService, InvitationService invitationService, InviteeTypeService inviteeTypeService, UserService userService, PublicInvitationDetailService publicInvitationDetailService) {
         this.inviteeService = inviteeService;
         this.invitationService = invitationService;
         this.inviteeTypeService = inviteeTypeService;
         this.userService = userService;
+        this.publicInvitationDetailService = publicInvitationDetailService;
     }
 
     @GetMapping("/by-invitation/{invitationId}")
@@ -59,9 +62,12 @@ public class InviteeController {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) return ResponseEntity.badRequest().body("Invalid token format.");
         String token = authHeader.substring(7);
         Optional<User> caller = userService.getUserFromToken(token);
+        if (caller.isEmpty()) {
+            return ResponseEntity.status(404).body("User not found");
+        }
         
         // validate invitation exists
-        Optional<Invitation> invitation = invitationService.findById(payload.getInvitationId());
+        Optional<Invitation> invitationOpt = invitationService.findById(payload.getInvitationId());
 
         // ensure invitee type exists if provided
         InviteeType inviteeType = inviteeTypeService.findById(payload.getInviteeTypeId());
@@ -73,10 +79,13 @@ public class InviteeController {
         invitee.setEmail(payload.getEmail());
         invitee.setImage(payload.getImage());
         invitee.setInviteeType(inviteeType);
-        invitee.setInvitation(invitation.get());
+        invitee.setInvitation(invitationOpt.get());
         invitee.setCreatedBy(caller.get());
         
         invitee = inviteeService.create(invitee);
+        
+        publicInvitationDetailService.addPublicInvitationDetailByInvitee(invitee, invitationOpt.get());
+        
         return ResponseEntity.ok(invitee);
     }
 

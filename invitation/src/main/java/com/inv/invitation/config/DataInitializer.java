@@ -5,11 +5,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.inv.invitation.model.DietaryType;
+import com.inv.invitation.model.InvitationFormField;
 import com.inv.invitation.model.InvitationType;
 import com.inv.invitation.model.InviteeType;
 import com.inv.invitation.model.RSVPResponseType;
 import com.inv.invitation.model.Role;
 import com.inv.invitation.repository.DietaryTypeRepository;
+import com.inv.invitation.repository.InvitationFormFieldRepository;
 import com.inv.invitation.repository.InvitationTypeRepository;
 import com.inv.invitation.repository.InviteeTypeRepository;
 import com.inv.invitation.repository.RSVPResponseTypeRepository;
@@ -127,5 +129,111 @@ public class DataInitializer {
                 });
             }
         };
+    }
+    
+    @Bean
+    ApplicationRunner initInvitationFormFields(
+            InvitationTypeRepository invitationTypeRepository,
+            InviteeTypeRepository inviteeTypeRepository,
+            InvitationFormFieldRepository invitationFormFieldRepository) {
+        return args -> {
+            // helper to insert if not exists
+            java.util.function.BiConsumer<InvitationType, InvitationFormField> ensureField = (invType, field) -> {
+                invitationFormFieldRepository.findByInvitationTypeNameAndFieldName(invType.getName(), field.getFieldName())
+                    .orElseGet(() -> {
+                        field.setInvitationType(invType);
+                        return invitationFormFieldRepository.save(field);
+                    });
+            };
+
+            // === PERSONAL EVENTS (minimal set) ===
+            String[] personalTypes = {
+                "Wedding", "Birthday", "Debut (18th Birthday)", "Baptism / Christening", "Graduation",
+                "Housewarming", "Anniversary", "Engagement Party", "Bridal Shower", "Baby Shower",
+                "Gender Reveal", "Farewell Party", "Retirement Party", "Reunion"
+            };
+
+            for (String typeName : personalTypes) {
+                invitationTypeRepository.findByName(typeName).ifPresent(invType -> {
+                    ensureField.accept(invType, createField("fullName", "Full Name", true, "TEXT"));
+                    ensureField.accept(invType, createField("rsvp", "RSVP", true, "SELECT"));
+                    ensureField.accept(invType, createField("guestCount", "Number of Guests", false, "NUMBER"));
+                    ensureField.accept(invType, createField("guestNames", "Guest Names", false, "TEXT"));
+                    ensureField.accept(invType, createField("dietaryPreference", "Dietary Preference", false, "SELECT"));
+                    ensureField.accept(invType, createField("specialRequests", "Special Requests", false, "TEXTAREA"));
+                });
+            }
+
+            // === CORPORATE / FORMAL EVENTS (full set) ===
+            String[] corporateTypes = {
+                "Corporate Event", "Conference / Seminar", "Workshop / Training", "Product Launch",
+                "Fundraising / Charity Event", "Holiday Party", "Festival / Community Event",
+                "Awarding / Recognition Ceremony", "Memorial / Remembrance", "Cultural / Religious Event"
+            };
+
+            for (String typeName : corporateTypes) {
+                invitationTypeRepository.findByName(typeName).ifPresent(invType -> {
+                    ensureField.accept(invType, createField("fullName", "Full Name", true, "TEXT"));
+                    ensureField.accept(invType, createField("email", "Email", true, "TEXT"));
+                    ensureField.accept(invType, createField("contact", "Phone", false, "TEXT"));
+                    ensureField.accept(invType, createField("rsvp", "RSVP", true, "SELECT"));
+                    ensureField.accept(invType, createField("organization", "Organization / Company", false, "TEXT"));
+                    ensureField.accept(invType, createField("inviteeType", "Invitee Type", false, "SELECT"));
+                    ensureField.accept(invType, createField("guestCount", "Number of Guests", false, "NUMBER"));
+                    ensureField.accept(invType, createField("dietaryPreference", "Dietary Preference", false, "SELECT"));
+                    ensureField.accept(invType, createField("accessibility", "Accessibility / Accommodation Needs", false, "TEXTAREA"));
+                    ensureField.accept(invType, createField("sessionSelection", "Preferred Session / Activity", false, "TEXT"));
+                    ensureField.accept(invType, createField("arrivalDate", "Arrival Date/Time", false, "DATE"));
+                    ensureField.accept(invType, createField("transportation", "Transportation Preference", false, "TEXT"));
+                    ensureField.accept(invType, createField("specialRequests", "Special Requests", false, "TEXTAREA"));
+                });
+            }
+
+            // === EXTRA FIELDS PER INVITEE TYPE (applied across events) ===
+            inviteeTypeRepository.findByName("VIP / Special Guest").ifPresent(invType -> {
+                invitationTypeRepository.findAll().forEach(type -> {
+                    ensureField.accept(type, createField("vipSeating", "VIP Seating Preference", false, "TEXT"));
+                    ensureField.accept(type, createField("role", "Role in Event", false, "TEXT"));
+                });
+            });
+
+            inviteeTypeRepository.findByName("Performer / Program Participant").ifPresent(invType -> {
+                invitationTypeRepository.findAll().forEach(type -> {
+                    ensureField.accept(type, createField("performanceRole", "Performance Role", false, "TEXT"));
+                    ensureField.accept(type, createField("availability", "Schedule / Availability", false, "TEXT"));
+                });
+            });
+
+            inviteeTypeRepository.findByName("Media / Press").ifPresent(invType -> {
+                invitationTypeRepository.findAll().forEach(type -> {
+                    ensureField.accept(type, createField("mediaOutlet", "Media Outlet / Organization", false, "TEXT"));
+                    ensureField.accept(type, createField("pressId", "Press ID", false, "TEXT"));
+                });
+            });
+
+            inviteeTypeRepository.findByName("Entourage").ifPresent(invType -> {
+                invitationTypeRepository.findAll().forEach(type -> {
+                    ensureField.accept(type, createField("entourageRole", "Entourage Role", false, "TEXT"));
+                });
+            });
+
+            inviteeTypeRepository.findByName("Business Partner / Client").ifPresent(invType -> {
+                invitationTypeRepository.findAll().forEach(type -> {
+                    ensureField.accept(type, createField("company", "Company Name", false, "TEXT"));
+                    ensureField.accept(type, createField("designation", "Position / Designation", false, "TEXT"));
+                });
+            });
+        };
+    }
+
+    // helper factory (no options)
+    private InvitationFormField createField(String name, String label, boolean required, String type) {
+        InvitationFormField f = new InvitationFormField();
+        f.setFieldName(name);
+        f.setLabel(label);
+        f.setRequired(required);
+        f.setFieldType(type);
+        f.setActive(true);
+        return f;
     }
 }
