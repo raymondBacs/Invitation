@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.inv.invitation.dto.InvitationRequest;
 import com.inv.invitation.dto.InvitationResponse;
+import com.inv.invitation.dto.InviterSummaryResponse;
 import com.inv.invitation.model.Invitation;
 import com.inv.invitation.model.InvitationDetail;
 import com.inv.invitation.model.InvitationType;
@@ -116,7 +117,8 @@ public class InvitationController {
         Boolean isEventDone = invitationDetailUtil.isEventDone(invitationDetail);
         
         if(isEventDone) {
-        	return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Event is Done.");
+        	InviterSummaryResponse inviterSummaryResponse = new InviterSummaryResponse();
+        	return ResponseEntity.ok(inviterSummaryResponse);
         }
         
         return ResponseEntity.ok(InvitationResponse.fromEntities(invitation, invitationDetail));
