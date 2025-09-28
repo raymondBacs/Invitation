@@ -10,10 +10,12 @@ import org.springframework.web.bind.annotation.*;
 import com.inv.invitation.dto.InvitationRequest;
 import com.inv.invitation.dto.InvitationResponse;
 import com.inv.invitation.dto.InviterSummaryResponse;
+import com.inv.invitation.model.GiftPreference;
 import com.inv.invitation.model.Invitation;
 import com.inv.invitation.model.InvitationDetail;
 import com.inv.invitation.model.InvitationType;
 import com.inv.invitation.model.User;
+import com.inv.invitation.service.GiftPreferenceService;
 import com.inv.invitation.service.InvitationDetailService;
 import com.inv.invitation.service.InvitationService;
 import com.inv.invitation.service.InvitationTypeService;
@@ -30,14 +32,17 @@ public class InvitationController {
     private final UserService userService;
     private final InvitationDetailService invitationDetailService;
     private final InvitationDetailUtil invitationDetailUtil;
+    private final GiftPreferenceService giftPreferenceService;
 
     public InvitationController(InvitationService invitationService, InvitationTypeService invitationTypeService, 
-    		UserService userService, InvitationDetailService invitationDetailService, InvitationDetailUtil invitationDetailUtil) {
+    		UserService userService, InvitationDetailService invitationDetailService, InvitationDetailUtil invitationDetailUtil,
+    		GiftPreferenceService giftPreferenceService) {
         this.invitationService = invitationService;
         this.invitationTypeService = invitationTypeService;
         this.userService = userService;
         this.invitationDetailService = invitationDetailService;
         this.invitationDetailUtil = invitationDetailUtil;
+        this.giftPreferenceService = giftPreferenceService;
     }
     
     @GetMapping("/list/{id}")
@@ -87,7 +92,8 @@ public class InvitationController {
         invitationDetail.setSpecialInstructions(payload.getSpecialInstructions());
         invitationDetail = invitationDetailService.saved(invitationDetail);
         
-        InvitationResponse invitationResponse = InvitationResponse.fromEntities(invitation, invitationDetail);
+        List<GiftPreference> giftPreferenceList = giftPreferenceService.getGiftPreferencesByInvitation(invitation.getId());
+        InvitationResponse invitationResponse = InvitationResponse.fromEntities(invitation, invitationDetail, giftPreferenceList);
         
         return ResponseEntity.ok(invitationResponse);
     }
@@ -121,7 +127,9 @@ public class InvitationController {
         	return ResponseEntity.ok(inviterSummaryResponse);
         }
         
-        return ResponseEntity.ok(InvitationResponse.fromEntities(invitation, invitationDetail));
+        List<GiftPreference> giftPreferenceList = giftPreferenceService.getGiftPreferencesByInvitation(invitation.getId());
+        
+        return ResponseEntity.ok(InvitationResponse.fromEntities(invitation, invitationDetail, giftPreferenceList));
     }
 
     @PutMapping("/{id}")
@@ -165,7 +173,8 @@ public class InvitationController {
             invitationDetail.setSpecialInstructions(payload.getSpecialInstructions());
             invitationDetail = invitationDetailService.saved(invitationDetail);
             
-            InvitationResponse invitationResponse = InvitationResponse.fromEntities(invitation, invitationDetail);
+            List<GiftPreference> giftPreferenceList = giftPreferenceService.getGiftPreferencesByInvitation(invitation.getId());
+            InvitationResponse invitationResponse = InvitationResponse.fromEntities(invitation, invitationDetail, giftPreferenceList);
             
             return ResponseEntity.ok(invitationResponse);
         } catch (IllegalArgumentException e) {

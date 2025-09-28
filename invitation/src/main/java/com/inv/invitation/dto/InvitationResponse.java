@@ -2,7 +2,10 @@ package com.inv.invitation.dto;
 
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.inv.invitation.model.GiftPreference;
 import com.inv.invitation.model.Invitation;
 import com.inv.invitation.model.InvitationDetail;
 import com.inv.invitation.model.InvitationType;
@@ -26,13 +29,14 @@ public class InvitationResponse {
     private LocalDateTime eventEndTime;
     private Boolean hasGiftPreference;
     private String specialInstructions;
-
+    private List<GiftPreferenceResponse> GiftPreferenceList;
     /**
      * Static factory method to map Invitation + InvitationDetail to DTO
      */
     public static InvitationResponse fromEntities(
             Invitation invitation, 
-            InvitationDetail detail
+            InvitationDetail detail,
+            List<GiftPreference> giftPreferenceList
     ) {
         if (invitation == null || detail == null) {
             return null;
@@ -62,6 +66,20 @@ public class InvitationResponse {
         dto.setEventEndTime(detail.getEventEndTime());
         dto.setHasGiftPreference(detail.getHasGiftPreference());
         dto.setSpecialInstructions(detail.getSpecialInstructions());
+        
+        List<GiftPreferenceResponse> giftPreferenceResponseList = new ArrayList<GiftPreferenceResponse>();
+        for(GiftPreference currentGiftPreference : giftPreferenceList) {
+        	GiftPreferenceResponse giftPreferenceResponseObject = new GiftPreferenceResponse();
+        	
+        	giftPreferenceResponseObject.setInvitationId(invitation.getId());
+        	giftPreferenceResponseObject.setGiftType(currentGiftPreference.getGiftType());
+        	giftPreferenceResponseObject.setDescription(currentGiftPreference.getDescription());
+        	giftPreferenceResponseObject.setLink(currentGiftPreference.getLink());
+        	giftPreferenceResponseObject.setPriority(currentGiftPreference.getPriority());
+        	
+        	giftPreferenceResponseList.add(giftPreferenceResponseObject);
+        }
+        dto.setGiftPreferenceList(giftPreferenceResponseList);
 
         return dto;
     }
