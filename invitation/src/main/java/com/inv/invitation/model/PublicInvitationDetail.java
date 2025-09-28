@@ -14,11 +14,11 @@ public class PublicInvitationDetail {
     @ManyToOne(optional = false)
     private Invitation invitation;
     
-    @OneToOne
+    @OneToOne	
     private Invitee invitee;
 
     @Column(unique = true, length = 8, nullable = false)
-    private String invitationCode;
+    private String authCode;
 
     private boolean seen = false;
 
@@ -31,8 +31,10 @@ public class PublicInvitationDetail {
 
     @ManyToOne
     private DietaryType dietaryType;
-	
+    @Column(columnDefinition = "TEXT")
     private String dietaryTypeNote;
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 	
 	private String email;
 	private String contact;
@@ -50,5 +52,4 @@ public class PublicInvitationDetail {
 	private String company;
 	private String designation;
     private String accessibility;
-    private String notes;
 }

@@ -9,23 +9,24 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PublicInvitationDetailRequest {
+	
 	@NotBlank
-	private Long id;
+	private String firstName;
 	@NotBlank
-	private Long invitationId;
+	private String lastName;
 	@NotBlank
-	private Long inviteeId;
+	private String inviteeCode;
 	@NotBlank
 	private String invitationCode;
 	@NotBlank
     private String rsvpResponse;
-	
+    
 	private Integer guestCount;
-	private boolean seen;
     private String dietaryType;
     private String dietaryTypeNote;
     private String accessibility;
     private String notes;
+    
 	private LocalDateTime arrivalDate;
 	private String email;
 	private String contact;

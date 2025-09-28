@@ -2,7 +2,11 @@ package com.inv.invitation.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.inv.invitation.dto.InvitationRequest;
@@ -13,6 +17,8 @@ import com.inv.invitation.repository.InvitationRepository;
 
 @Service
 public class InvitationService {
+	
+	@Autowired
     private final InvitationRepository repo;
 
     public InvitationService(InvitationRepository repo) {
@@ -20,6 +26,7 @@ public class InvitationService {
     }
 
     public Invitation create(Invitation invitation) {
+    	invitation.setInvitationCode(generateUniqueCode());
         return repo.save(invitation);
     }
 
@@ -34,11 +41,18 @@ public class InvitationService {
     public List<Invitation> listByAccount(User account) {
         return repo.findAllByAccountAndDeletedFalse(account);
     }
+    
+    public ResponseEntity<?> authenticate16DigitCode(String invitationCode) {
+		Optional<Invitation> invitationCodeOpt = repo.findByInvitationCode(invitationCode);
+		
+    	if (invitationCodeOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid Invitation");
+        }
+    	return ResponseEntity.ok(invitationCodeOpt);
+	}
 
     public Invitation update(Long id, InvitationRequest changes, User modifier, InvitationType invitationType) {
         return repo.findById(id).map(existing -> {
-            existing.setTitle(changes.getTitle());
-            existing.setMessage(changes.getMessage());
             existing.setInvitationType(invitationType);
             existing.setModifiedBy(modifier);
             return repo.save(existing);
@@ -50,5 +64,9 @@ public class InvitationService {
             i.setDeleted(true);
             repo.save(i);
         });
+    }
+    
+    public String generateUniqueCode() {
+        return UUID.randomUUID().toString().replaceAll("-", "").substring(0, 16).toUpperCase();
     }
 }

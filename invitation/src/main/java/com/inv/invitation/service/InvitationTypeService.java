@@ -2,6 +2,7 @@ package com.inv.invitation.service;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.inv.invitation.model.InvitationType;
@@ -9,6 +10,8 @@ import com.inv.invitation.repository.InvitationTypeRepository;
 
 @Service
 public class InvitationTypeService {
+	
+	@Autowired
     private final InvitationTypeRepository repo;
 
     public InvitationTypeService(InvitationTypeRepository repo) {

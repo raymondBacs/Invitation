@@ -14,10 +14,13 @@ public class Invitation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime created;
 
-    private String title;
-    @Column(length = 2000)
-    private String message;
+    @UpdateTimestamp
+    private LocalDateTime modified;
 
     @ManyToOne
     @JoinColumn(name = "invitation_type_id")
@@ -37,13 +40,9 @@ public class Invitation {
     @ManyToOne
     @JoinColumn(name = "modified_by_id")
     private User modifiedBy;
-
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime created;
-
-    @UpdateTimestamp
-    private LocalDateTime modified;
+    
+    @Column(unique = true, length = 16, nullable = false)
+    private String invitationCode;
 
     private boolean deleted = false;
 }

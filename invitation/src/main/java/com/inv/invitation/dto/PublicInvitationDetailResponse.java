@@ -3,6 +3,9 @@ package com.inv.invitation.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.inv.invitation.model.DietaryType;
+import com.inv.invitation.model.RSVPResponseType;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,18 +13,21 @@ import lombok.Setter;
 @Setter
 public class PublicInvitationDetailResponse {
 	
-	private Long invitationId;
-	private Long inviteeId;
-	private Integer guestCount;
-	private String invitationCode;
-    private String rsvpResponse;
+	private Long id;
+	private String firstName;
+	private String lastName;
+	private String rsvpResponse;
+	private Integer lockedDaysBeforeEvent;
+	private LocalDateTime eventDate;
 	
-    private Long id;
-	private boolean seen;
+	private String inviteeCode;
+	private String invitationCode;
+	private Integer guestCount;
     private String dietaryType;
     private String dietaryTypeNote;
     private String accessibility;
     private String notes;
+    
 	private LocalDateTime arrivalDate;
 	private String email;
 	private String contact;
@@ -40,4 +46,6 @@ public class PublicInvitationDetailResponse {
 	private String designation;
     
     private List<InvitationFormFieldResponse> invitationFormField;
+    private List<RSVPResponseType> rSVPResponseTypeList;
+    private List<DietaryType> dietaryTypeList;
 }
